@@ -21,10 +21,24 @@ public:
     distance_decele_ = 0.5 * (v_end_ + v_max_) * time_decele_;
     distance_const_ = distance_ - distance_accele_ - distance_decele_;
 
-    time_const_ = distance_const_ / v_max_;
+    if (distance_const_ > 0.0)
+    {
+      // 最大速度まで加速できる場合
+      time_const_ = distance_const_ / v_max_;
+    }
+    else
+    {
+      // 最大速度まで加速できない場合
+      v_max_ = std::sqrt(2.0 * a_max_ * distance_ + v_start_ * v_start_ + v_end_ * v_end_) / std::sqrt(2.0);
+      time_accele_ = (v_max_ - v_start_) / a_max_;
+      time_decele_ = (v_max_ - v_end_) / a_max_;
+      distance_accele_ = 0.5 * (v_start_ + v_max_) * time_accele_;
+      distance_decele_ = 0.5 * (v_end_ + v_max_) * time_decele_;
+      distance_const_ = distance_ - distance_accele_ - distance_decele_;
+      time_const_ = 0.0;
+    }
 
     time_total_ = time_accele_ + time_const_ + time_decele_;
-
   }
 
   T get_total_time()
@@ -125,7 +139,7 @@ private:
 
 int main()
 {
-  SpeedProfile<double> speed_profile(4.0, 5.0, 10.0);
+  SpeedProfile<double> speed_profile(4.0, 10.0, 10.0);
   double time_total = speed_profile.get_total_time();
 
   std::vector<double> time_list;
